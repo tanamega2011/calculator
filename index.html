@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>เครื่องคิดเลขออนไลน์</title>
+  <meta name="description" content="เครื่องคิดเลขออนไลน์ ใช้งานง่าย ฟรี รองรับมือถือและคอมพิวเตอร์">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8981893367192594" crossorigin="anonymous"></script>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    :root {
+      color-scheme: light dark;
+      --bg:#f2f2f7; --card:#fff; --display:#f8f8fa;
+      --button:#e5e5ea; --button-hover:#d6d6db;
+      --operator:#ff9f0a; --operator-hover:#e58f00;
+      --text:#111; --muted:#777;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:#101010; --card:#1c1c1e; --display:#242426;
+        --button:#333336; --button-hover:#444448;
+        --operator:#ff9f0a; --operator-hover:#e58f00;
+        --text:#fff; --muted:#999;
+      }
+    }
+    body {
+      margin:0; min-height:100vh; background:var(--bg); color:var(--text);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      display:flex; justify-content:center; align-items:center; padding:20px;
+    }
+    .page { width:100%; max-width:420px; }
+    header { text-align:center; margin-bottom:16px; }
+    header h1 { margin:0; font-size:24px; }
+    header p { margin:5px 0 0; color:var(--muted); font-size:14px; }
+    .ad {
+      width:100%; min-height:70px; margin-bottom:14px;
+      display:flex; justify-content:center; align-items:center;
+      border-radius:14px; background:var(--card); color:var(--muted); font-size:12px;
+    }
+    .calculator {
+      background:var(--card); padding:16px; border-radius:24px;
+      box-shadow:0 8px 30px rgba(0,0,0,.08);
+    }
+    .display {
+      width:100%; min-height:110px; padding:18px; margin-bottom:14px;
+      border-radius:18px; background:var(--display);
+      display:flex; flex-direction:column; justify-content:flex-end; align-items:flex-end;
+      overflow:hidden;
+    }
+    .expression {
+      width:100%; min-height:24px; text-align:right; color:var(--muted);
+      font-size:16px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .result {
+      width:100%; margin-top:4px; text-align:right;
+      font-size:clamp(32px,10vw,48px); font-weight:600;
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .buttons { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+    button {
+      border:0; min-height:68px; border-radius:18px; background:var(--button);
+      color:var(--text); font-size:22px; font-weight:600; cursor:pointer; user-select:none;
+      transition:transform .08s ease,background .12s ease;
+    }
+    button:hover { background:var(--button-hover); }
+    button:active { transform:scale(.94); }
+    .operator { background:var(--operator); color:#fff; }
+    .operator:hover { background:var(--operator-hover); }
+    .wide { grid-column:span 2; }
+    .danger { color:#ff453a; }
+    footer { text-align:center; margin-top:16px; color:var(--muted); font-size:12px; }
+    @media (max-width:360px) {
+      body { padding:10px; }
+      .calculator { padding:12px; }
+      button { min-height:60px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>เครื่องคิดเลขออนไลน์</h1>
+      <p>เครื่องคิดเลขฟรี ใช้งานง่ายบนมือถือและคอมพิวเตอร์</p>
+    </header>
+
+    <div class="ad">พื้นที่โฆษณา</div>
+
+    <section class="calculator">
+      <div class="display">
+        <div id="expression" class="expression"></div>
+        <div id="result" class="result">0</div>
+      </div>
+
+      <div class="buttons">
+        <button class="danger" data-action="clear">AC</button>
+        <button data-action="delete">⌫</button>
+        <button data-action="percent">%</button>
+        <button class="operator" data-operator="÷">÷</button>
+
+        <button data-number="7">7</button>
+        <button data-number="8">8</button>
+        <button data-number="9">9</button>
+        <button class="operator" data-operator="×">×</button>
+
+        <button data-number="4">4</button>
+        <button data-number="5">5</button>
+        <button data-number="6">6</button>
+        <button class="operator" data-operator="−">−</button>
+
+        <button data-number="1">1</button>
+        <button data-number="2">2</button>
+        <button data-number="3">3</button>
+        <button class="operator" data-operator="+">+</button>
+
+        <button class="wide" data-number="0">0</button>
+        <button data-action="decimal">.</button>
+        <button class="operator" data-action="equals">=</button>
+      </div>
+    </section>
+
+    <div class="ad" style="margin-top:14px;">พื้นที่โฆษณา</div>
+
+    <footer>© 2026 เครื่องคิดเลขออนไลน์</footer>
+  </main>
+
+  <script>
+    const resultElement = document.getElementById("result");
+    const expressionElement = document.getElementById("expression");
+
+    let currentValue="0", previousValue=null, operator=null;
+    let waitingForNewValue=false, expressionText="";
+
+    function updateDisplay() {
+      resultElement.textContent=currentValue;
+      expressionElement.textContent=expressionText;
+    }
+
+    function formatNumber(number) {
+      if (!Number.isFinite(number)) return "Error";
+      return String(Math.round((number + Number.EPSILON) * 1000000000000) / 1000000000000);
+    }
+
+    function inputNumber(number) {
+      if (currentValue==="Error") clearCalculator();
+      if (waitingForNewValue) {
+        currentValue=number;
+        waitingForNewValue=false;
+      } else {
+        currentValue=currentValue==="0" ? number : currentValue+number;
+      }
+      updateDisplay();
+    }
+
+    function inputDecimal() {
+      if (currentValue==="Error") clearCalculator();
+      if (waitingForNewValue) {
+        currentValue="0.";
+        waitingForNewValue=false;
+      } else if (!currentValue.includes(".")) currentValue+=".";
+      updateDisplay();
+    }
+
+    function chooseOperator(nextOperator) {
+      if (currentValue==="Error") return;
+      const inputValue=Number(currentValue);
+
+      if (operator && waitingForNewValue) {
+        operator=nextOperator;
+        expressionText=`${formatNumber(previousValue)} ${operator}`;
+        updateDisplay();
+        return;
+      }
+
+      if (previousValue===null) {
+        previousValue=inputValue;
+      } else if (operator) {
+        const result=calculate(previousValue,inputValue,operator);
+        if (result===null) {
+          currentValue="Error"; previousValue=null; operator=null; expressionText="";
+          updateDisplay(); return;
+        }
+        currentValue=formatNumber(result);
+        previousValue=result;
+      }
+
+      operator=nextOperator;
+      waitingForNewValue=true;
+      expressionText=`${formatNumber(previousValue)} ${operator}`;
+      updateDisplay();
+    }
+
+    function calculate(first,second,op) {
+      switch(op) {
+        case "+": return first+second;
+        case "−": return first-second;
+        case "×": return first*second;
+        case "÷": return second===0 ? null : first/second;
+        default: return second;
+      }
+    }
+
+    function equals() {
+      if (operator===null || previousValue===null || currentValue==="Error") return;
+      const secondValue=Number(currentValue);
+      const firstValue=previousValue;
+      const usedOperator=operator;
+      const result=calculate(firstValue,secondValue,usedOperator);
+
+      if (result===null) {
+        currentValue="Error"; expressionText="";
+        previousValue=null; operator=null;
+        updateDisplay(); return;
+      }
+
+      expressionText=`${formatNumber(firstValue)} ${usedOperator} ${formatNumber(secondValue)} =`;
+      currentValue=formatNumber(result);
+      previousValue=null; operator=null; waitingForNewValue=true;
+      updateDisplay();
+    }
+
+    function percent() {
+      if (currentValue==="Error") return;
+      currentValue=formatNumber(Number(currentValue)/100);
+      updateDisplay();
+    }
+
+    function deleteLast() {
+      if (waitingForNewValue || currentValue==="Error") return;
+      currentValue=currentValue.length<=1 ? "0" : currentValue.slice(0,-1);
+      updateDisplay();
+    }
+
+    function clearCalculator() {
+      currentValue="0"; previousValue=null; operator=null;
+      waitingForNewValue=false; expressionText="";
+      updateDisplay();
+    }
+
+    document.querySelectorAll("[data-number]").forEach(button => {
+      button.addEventListener("click",()=>inputNumber(button.dataset.number));
+    });
+
+    document.querySelectorAll("[data-operator]").forEach(button => {
+      button.addEventListener("click",()=>chooseOperator(button.dataset.operator));
+    });
+
+    document.querySelector('[data-action="decimal"]').addEventListener("click",inputDecimal);
+    document.querySelector('[data-action="equals"]').addEventListener("click",equals);
+    document.querySelector('[data-action="percent"]').addEventListener("click",percent);
+    document.querySelector('[data-action="delete"]').addEventListener("click",deleteLast);
+    document.querySelector('[data-action="clear"]').addEventListener("click",clearCalculator);
+
+    document.addEventListener("keydown",event => {
+      if (/^[0-9]$/.test(event.key)) return inputNumber(event.key);
+      if (event.key===".") return inputDecimal();
+      if (event.key==="+") return chooseOperator("+");
+      if (event.key==="-") return chooseOperator("−");
+      if (event.key==="*") return chooseOperator("×");
+      if (event.key==="/") { event.preventDefault(); return chooseOperator("÷"); }
+      if (event.key==="%") return percent();
+      if (event.key==="Enter" || event.key==="=") return equals();
+      if (event.key==="Backspace") return deleteLast();
+      if (event.key==="Escape") return clearCalculator();
+    });
+
+    updateDisplay();
+  </script>
+</body>
+</html>
